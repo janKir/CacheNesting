@@ -149,6 +149,7 @@ class CacheNestedDependencies extends WireData implements Module
             ARRAY_FILTER_USE_KEY);
         
         // keep only elements which are not expired by now
+        // NOTE: this is somehow neccessary because sometimes even expired caches are returned?!
         self::$cacheAvailable = array_filter(
             self::$cacheAvailable,
             function($v) { return is_string($v) || $v <  -60000000 || $v > 0; });
