@@ -33,7 +33,7 @@ The cache of the complete page depends on the caches of the two fields.
         CacheNesting::createCache("shortDated", $shortDated, 3600);
         CacheNesting::createCache("completePage", $html, null, array("body", "shortDated"));
     }
->
+    echo $html;
 ```
 
 ## Syntax
