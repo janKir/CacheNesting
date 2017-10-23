@@ -38,8 +38,10 @@ class CacheNestedDependencies extends WireData implements Module
     }
 
     public function ready() {
-        $this->addHookBefore("Page::render", $this, "hookInit");
-        $this->addHookAfter("Page::render", $this, "hookFinish");   
+        if ($this->page->template != "admin") {
+            $this->addHookBefore("Page::render", $this, "hookInit");
+            $this->addHookAfter("Page::render", $this, "hookFinish");    
+        }        
     }
     
     /**
@@ -74,16 +76,15 @@ class CacheNestedDependencies extends WireData implements Module
      */
     protected static $cachePage = "unknownPage";
 
-    public static function hookInit($event) {
-        $page = $event->arguments(0);
+    protected function hookInit($event) {
+        $page = $event->object;
         $prefix = self::$cachePrefix;
-        $title = wire()->sanitizer->pageName($page->title);
+        $title = $this->sanitizer->pageName($page->title);
         $cacheName = "{$prefix}__{$page->id}-{$title}";
-
-        self::initCacheStatus($cacheName);
+        self::initCacheStatus($cacheName);            
     }
 
-    public static function hookFinish($event) {
+    protected function hookFinish($event) {
         self::saveCacheStatus();
     }
 
@@ -108,7 +109,6 @@ class CacheNestedDependencies extends WireData implements Module
      * to be called before all caching.
      */
     public static function initCacheStatus($pageName) {
-
         if (count(self::$dependencyList) > 0) {
             throw new WireException("Cannot initialize cache dependencies, because the dependency List is not empty.");
         }
@@ -155,8 +155,6 @@ class CacheNestedDependencies extends WireData implements Module
             function($v) { return is_string($v) || $v <  -60000000 || $v > 0; });
 
         self::traverseCacheDeps();
-        bd(self::$cacheStatus, "cache status list");
-        bd(self::$dependencyList, "deps after init");
     }
 
     /**
@@ -205,17 +203,12 @@ class CacheNestedDependencies extends WireData implements Module
                 $this_available = false;
             }
 
-            // if (array_key_exists($depName, self::$cacheStatus)){
-            //     l("nestedCache::traverse(): checked item is aleady inside cacheStatus. name: $depName -  value: " . self::$cacheStatus[$depName] . " - newValue: $this_available");
-            // }
-
             // add dependency and status to $cacheStatus 
             self::$cacheStatus[$depName] = $this_available;
 
             // remove from dependency tree if not available to avoid checking same dependency again
             if (!$this_available) {
                 unset(self::$dependencyList[$depName]);
-                // l("nestedCache::traverse(): cache not available: $depName");
                 $all_available = false;
                 // and delete straight from cache db
                 if (!$cache->delete($depName))
@@ -271,10 +264,8 @@ class CacheNestedDependencies extends WireData implements Module
         // create cache
         $cache = wire()->cache;
         $success = $cache->saveFor(self::$cachePage, "cacheDependencyTree", self::$dependencyList, WireCache::expireNever);
-        if ($success)
-            l("nestedCache: successfully saved cache dependency tree.");
-        else
-            db("failed saving cache dependency tree!");
+        if (!$success)
+            $this->log->error("The CacheNestedDependency module failed saving the cache dependency tree!")
     }
 
     /**
@@ -314,10 +305,7 @@ class CacheNestedDependencies extends WireData implements Module
 
         // remove existing entry
         if (array_key_exists($cacheFullName, self::$dependencyList)) {
-            //bd(self::$dependencyList[$cacheFullName], "nestedCache dependency already exists: $cacheFullName");
             unset(self::$dependencyList[$cacheFullName]);
-
-            // TODO: also remove entries referencing this entry to avoid deprecated values?
         }
 
         // if this cache is a non-leaf node
@@ -334,11 +322,12 @@ class CacheNestedDependencies extends WireData implements Module
             foreach ($dependencies as $dependency) {
                 $dependency = self::$cachePage . "__" . $dependency;
                 // check if dependencies are available
-                if (!array_key_exists($dependency, nestedCache::$dependencyList))
-                    throw new WireException("nestedCache::createCache() : trying to reference a non-available dependency: $dependency. Dependencies must be cached before their dependent.");
+                if (!array_key_exists($dependency, CacheNestedDependencies::$dependencyList)){
+                    throw new WireException("CacheNestedDependencies::createCache() : trying to reference a non-available dependency: $dependency. Dependencies must be cached before their dependent.");                    
+                }
 
                 // create nested dependency list
-                $thisDependencies[$dependency] = nestedCache::$dependencyList[$dependency];
+                $thisDependencies[$dependency] = CacheNestedDependencies::$dependencyList[$dependency];
             }
 
         }
@@ -348,7 +337,7 @@ class CacheNestedDependencies extends WireData implements Module
         }
 
         // add dependencies to list
-        nestedCache::$dependencyList[$cacheFullName] = $thisDependencies;
+        CacheNestedDependencies::$dependencyList[$cacheFullName] = $thisDependencies;
 
         // create cache
         $cache = wire()->cache;
@@ -359,6 +348,6 @@ class CacheNestedDependencies extends WireData implements Module
      * returns the current page's dependency list
      */
     public static function getDep() {
-        return nestedCache::$dependencyList;
+        return CacheNestedDependencies::$dependencyList;
     }
 }
