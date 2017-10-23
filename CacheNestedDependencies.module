@@ -1,6 +1,6 @@
 <?php
 /**
- * CacheNestedDependencies (0.0.1)
+ * CacheNesting (0.0.1)
  * This module manages caches and dependencies of nested caches.
  * 
  * @author Jan Kirchner
@@ -17,14 +17,14 @@
 namespace ProcessWire;
 
 
-class CacheNestedDependencies extends WireData implements Module
+class CacheNesting extends WireData implements Module
 {
     /**
      * PW module info method
      */
     public static function getModuleInfo(){
         return array(
-            'title' => "CacheNestedDependencies",
+            'title' => "CacheNesting",
             'version' => "0.0.1",
             'summary' => "This module helps managing pages with multiple parts to be cached and different expiration.",
             'author' => "Jan Kirchner",
@@ -265,7 +265,7 @@ class CacheNestedDependencies extends WireData implements Module
         $cache = wire()->cache;
         $success = $cache->saveFor(self::$cachePage, "cacheDependencyTree", self::$dependencyList, WireCache::expireNever);
         if (!$success)
-            $this->log->error("The CacheNestedDependency module failed saving the cache dependency tree!")
+            $this->log->error("The CacheNestedDependency module failed saving the cache dependency tree!");
     }
 
     /**
@@ -322,12 +322,12 @@ class CacheNestedDependencies extends WireData implements Module
             foreach ($dependencies as $dependency) {
                 $dependency = self::$cachePage . "__" . $dependency;
                 // check if dependencies are available
-                if (!array_key_exists($dependency, CacheNestedDependencies::$dependencyList)){
-                    throw new WireException("CacheNestedDependencies::createCache() : trying to reference a non-available dependency: $dependency. Dependencies must be cached before their dependent.");                    
+                if (!array_key_exists($dependency, CacheNesting::$dependencyList)){
+                    throw new WireException("CacheNesting::createCache() : trying to reference a non-available dependency: $dependency. Dependencies must be cached before their dependent.");                    
                 }
 
                 // create nested dependency list
-                $thisDependencies[$dependency] = CacheNestedDependencies::$dependencyList[$dependency];
+                $thisDependencies[$dependency] = CacheNesting::$dependencyList[$dependency];
             }
 
         }
@@ -337,7 +337,7 @@ class CacheNestedDependencies extends WireData implements Module
         }
 
         // add dependencies to list
-        CacheNestedDependencies::$dependencyList[$cacheFullName] = $thisDependencies;
+        CacheNesting::$dependencyList[$cacheFullName] = $thisDependencies;
 
         // create cache
         $cache = wire()->cache;
@@ -348,6 +348,6 @@ class CacheNestedDependencies extends WireData implements Module
      * returns the current page's dependency list
      */
     public static function getDep() {
-        return CacheNestedDependencies::$dependencyList;
+        return CacheNesting::$dependencyList;
     }
 }
