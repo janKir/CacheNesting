@@ -8,6 +8,34 @@ Since you cannot say which cache will expire next, with WireCache alone it is no
 
 The CacheNesting module stores dependencies for each cache, so if any of its dependencies expires the dependent cache will be recreated as well.
 
+## How To Use
+In your template files, call `CacheNesting::getCache` to receive the cached data and `CacheNesting::createCache` to store data to cache.
+
+### Example
+The following code shows the usecase of a page which consists of the data of its `body` field and its `dataThatChangesHourly` field. The `body`'s cache should expire whenever the page is saved. However, the field `dataThatChangesHourly` expires (as the name suggests) hourly.
+The cache of the complete page depends on the caches of the two fields.
+
+```
+<?php
+    $html = CacheNesting::getCache("completePage");
+
+    if (!$html) {
+        $body = CacheNesting::getCache("body");
+        if (!$body)
+            $body = $page->body;
+        $shortDated = CacheNesting::getCache("shortDated");
+        if (!$shortDated)
+            $shortDated = $page->dataThatChangesHourly;
+
+        $html = $body . $shortDated;
+
+        CacheNesting::createCache("body", $body, "id=$page->id");
+        CacheNesting::createCache("shortDated", $shortDated, 3600);
+        CacheNesting::createCache("completePage", $html, null, array("body", "shortDated"));
+    }
+>
+```
+
 ## Syntax
 ### Get Cache
 Use `getCache` to get the cache (just the same as with WireCache).
