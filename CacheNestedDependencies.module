@@ -28,10 +28,10 @@ class CacheNesting extends WireData implements Module
             'version' => "0.0.1",
             'summary' => "This module helps managing pages with multiple parts to be cached and different expiration.",
             'author' => "Jan Kirchner",
-            'href' => "", // TODO: add url
+            'href' => "https://github.com/janKir/CacheNesting",
             'icon' => "sitemap",
 
-            'autoload' => true, // sure?
+            'autoload' => true,
             'singular' => true,
             'requires' => "ProcessWire>=2.6"
         );
