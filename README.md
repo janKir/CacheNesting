@@ -15,7 +15,7 @@ In your template files, call `CacheNesting::getCache` to receive the cached data
 The following code shows the usecase of a page which consists of the data of its `body` field and its `dataThatChangesHourly` field. The `body`'s cache should expire whenever the page is saved. However, the field `dataThatChangesHourly` expires (as the name suggests) hourly.
 The cache of the complete page depends on the caches of the two fields.
 
-```
+```php
 <?php
     $html = CacheNesting::getCache("completePage");
 
@@ -39,7 +39,7 @@ The cache of the complete page depends on the caches of the two fields.
 ## Syntax
 ### Get Cache
 Use `getCache` to get the cache (just the same as with WireCache).
-``` 
+```php
 CacheNesting::getCache($cacheName)
 ```
 **Arguments**
@@ -52,7 +52,7 @@ CacheNesting::getCache($cacheName)
 
 ### Save Cache
 Use `createCache` to store data to the cache.
-```
+```php
 CacheNesting::createCache($cacheName, $cacheData, $cacheExpire = null, $dependencies = array())
 ```
 **Arguments**
