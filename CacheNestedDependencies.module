@@ -26,7 +26,7 @@ class CacheNesting extends WireData implements Module
         return array(
             'title' => "CacheNesting",
             'version' => "0.0.1",
-            'summary' => "This module helps managing pages with multiple parts to be cached and different expiration.",
+            'summary' => "TA Processwire module that manages nested caches and their dependencies. It enables you to cache multiple parts of a page with different expiration which also can be nested in larger caches.",
             'author' => "Jan Kirchner",
             'href' => "https://github.com/janKir/CacheNesting",
             'icon' => "sitemap",
