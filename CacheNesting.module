@@ -212,7 +212,7 @@ class CacheNesting extends WireData implements Module
                 $all_available = false;
                 // and delete straight from cache db
                 if (!$cache->delete($depName))
-                    $log->warning("failed deleting cache: $depName");
+                wire()->log->warning("failed deleting cache: $depName");
             }
 
             // skip if false and no full traverse needed
@@ -265,7 +265,7 @@ class CacheNesting extends WireData implements Module
         $cache = wire()->cache;
         $success = $cache->saveFor(self::$cachePage, "cacheDependencyTree", self::$dependencyList, WireCache::expireNever);
         if (!$success)
-            $this->log->error("The CacheNestedDependency module failed saving the cache dependency tree!");
+            wire()->log->error("The CacheNestedDependency module failed saving the cache dependency tree!");
     }
 
     /**
